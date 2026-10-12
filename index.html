@@ -48,7 +48,7 @@ function deleteInspection(i){if(confirm('この検査記録を削除しますか
 function startChecks(){if(!current().equipments.length){alert('対象設備を1つ以上選択してください');return}equipIndex=0;setPage('checks')}
 function setVerdict(t,i,v){let x=current();if(x.completedAt)return;x.results[t][i].value=v;changed(`${t}「${x.results[t][i].label}」を${v}に変更`);render()}
 function setItemText(t,i,k,v){let x=current();if(x.completedAt)return;x.results[t][i][k]=v;changed(`${t}「${x.results[t][i].label}」の記述を更新`)}
-function nextEquip(){if(equipIndex<x.equipments.length-1){equipIndex++;render()}else setPage('summary')}
+function nextEquip(){let x=current();if(!x||!x.equipments.length){setPage('equip');return}if(equipIndex<x.equipments.length-1){equipIndex++;render()}else setPage('summary')}
 function editEquip(t){ret=t;setPage('editEquip')}
 function finish(){let x=current();if(!confirm('検査を完了しますか？完了後は編集できません。'))return;x.completedAt=new Date().toISOString();changed('検査を完了（以降閲覧のみ）');setPage('summary')}
 clean();render();
