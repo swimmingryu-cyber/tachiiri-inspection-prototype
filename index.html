@@ -136,6 +136,298 @@ function ordinancePreviewEvidence(item,index,readOnly) {
 const CUSTOM = 'その他の確認項目';
 const TYPES=['消火器','屋内消火栓設備','自動火災報知設備','火災通報装置','誘導灯','誘導標識','非常警報設備','条例・管理事項'];
 const FIRE_USES=[['1イ','劇場・映画館など'],['1ロ','公会堂・集会場'],['2イ','キャバレーなど'],['2ロ','遊技場・ダンスホールなど'],['2ハ','性風俗関連店舗など'],['2ニ','カラオケボックスなど'],['3イ','料理店など'],['3ロ','飲食店'],['4','百貨店・物品販売店'],['5イ','旅館・ホテル'],['5ロ','共同住宅・寄宿舎'],['6イ1','病院など'],['6イ2','診療所など'],['6イ3','助産所など'],['6イ4','病院・診療所のうち上記以外'],['6ロ','自力避難困難者の入所施設など'],['6ハ','福祉施設など'],['6ニ','幼稚園・特別支援学校など'],['7','学校'],['8','図書館・博物館など'],['9イ','蒸気浴場など'],['9ロ','公衆浴場など'],['10','駅舎・空港など'],['11','神社・寺院など'],['12','工場・作業場'],['13イ','映画スタジオなど'],['13ロ','テレビスタジオなど'],['14','倉庫'],['15','事務所など'],['16イ','複合用途（特定用途を含む）'],['16ロ','複合用途（特定用途を含まない）'],['16の2','地下街'],['16の3','準地下街'],['17','重要文化財など'],['18','アーケード'],['19','山林'],['20','船舶・車両']];
+const ORDINANCE_DETAILS = [
+  ["火を使用する設備（条例第3〜22条）", [
+  ["炉・焼却炉・工業炉","3","炉の種類、据付面積、燃料、可燃性ガス等の発生を確認。離隔・遮熱・燃料系統と設置届（第51条）を照合。"],
+  ["ふろがま","4","燃料・設置状況を確認し、煙道・排気と可燃物との離隔を見る。"],
+  ["温風暖房機","5","入力、風道の有無、設置先の用途を確認。排気経路と設置届（第51条）を照合。"],
+  ["厨房設備・レンジ・フライヤー","5の2","厨房室ごとに入力を合計し、油脂を含む排気、天蓋・ダクト、清掃、消火装置の条件を確認。同一厨房室で合計350kW以上は第51条の届出対象。既存の設備別チェックも利用できます。"],
+  ["ボイラー","6","設置場所、燃料、安全装置、排気を確認。個人の住居や労働安全衛生法令上の区分による第51条の届出除外を確認。"],
+  ["据付型ストーブ・壁付暖炉","7・8","固定式の薪ストーブや壁付暖炉が候補。可燃物との離隔、遮熱、煙突を確認。移動式石油ストーブは第23条を確認。"],
+  ["乾燥設備・サウナ設備","9・10","加熱方式、温度制御、安全装置、周囲の可燃物を確認。第51条の届出では個人の住居の除外を確認。"],
+  ["簡易湯沸設備・給湯湯沸設備","11・12","機器の種類、入力、設置場所、給排気を確認。給湯湯沸設備は入力70kW以上の場合に第51条の届出条件・除外を確認。"],
+  ["燃料電池発電設備","12の2","機器方式、出力、屋内外を確認。設置条件に応じた管理基準と第51条の届出除外を別々に確認。"],
+  ["掘ごたつ・いろり","13","火床の不燃構造・被覆と、周囲の可燃物や清掃状況を確認。"],
+  ["内燃機関式ヒートポンプ冷暖房機","13の2","銘板で内燃機関式か確認し、排気・周囲の離隔を確認。入力70kW以上は第51条の届出対象。"],
+  ["火花を生ずる設備・放電加工機","14・14の2","グラビヤ印刷機・起毛機等は火花発生のおそれを確認。放電加工機は危険物に該当する加工液か確認。第51条の届出と照合。"],
+  ["変電設備・キュービクル","15","出力・電圧・屋内外を銘板等で確認。屋内の全出力20kW以下等の除外と、届出の高圧・特別高圧かつ全出力50kW超の条件は別に確認。既存の設備別チェックで各面の用途・距離を記録できます。"],
+  ["電気自動車等の急速充電設備","15の2","設備内で変圧する方式かを確認。全出力50kW以下は第51条の届出除外。屋外の離隔にも別途条件・例外あり。"],
+  ["内燃機関を用いる発電設備","16","固定して用いるか、設置場所・燃料・排気を確認。固定式は第51条の届出条件と第16条第4項の除外を確認。"],
+  ["蓄電池設備","17","容量・機器仕様を確認。管理基準の対象除外と、第51条の20kWh以下の届出除外を分けて確認。"],
+  ["ネオン管灯設備・舞台等の電気設備","18・19","ネオン管か、舞台・展示装飾・仮設用途の電気設備かを確認。ネオン管灯は2kVA以上で第51条の届出対象。"],
+  ["避雷設備・水素気球・煙突","20・21・21の2","避雷設備の点検、水素気球の係留・届出、対象設備に附属する煙突の離隔や貫通部を、該当するものごとに確認。"]
+  ]],
+  ["火気器具・火の使用制限（条例第23〜35条）", [
+  ["移動式石油ストーブ等（液体燃料）","23","燃料の種類、給油時の消火、漏れ、転倒対策、周囲の離隔を確認。"],
+  ["七輪・炭火コンロ等（固体燃料）","24","周囲の可燃物との離隔、残火・灰の処理を確認。"],
+  ["カセットこんろ・可搬式ガスこんろ等","25","熱源がガスの器具。周囲の離隔、接続管がある場合は種類・長さ・接続を確認。"],
+  ["電気ストーブ・ホットプレート等","26","電気を熱源とする器具。通電したままの放置、安全装置、発火のおそれに応じた周囲の状況を確認。"],
+  ["火消つぼ等","27","火の残った炭等の処理状況と周囲の可燃物を確認。"],
+  ["喫煙・裸火・危険物品の持込み","29","消防長が指定する場所か、標識・承認の有無を確認。建物の用途だけで適用を確定しない。"],
+  ["空地・たき火・がん具用煙火","30〜32","枯草等の管理、たき火周囲の可燃物、煙火を使用する場所を確認。煙・火炎や煙火の届出は第52条も照合。"],
+  ["実験室・薬局等の危険物品","33","薬品の品名・性質、容器、保管方法を確認。数量の確認とあわせて第33条の準用基準を見る。"],
+  ["溶接・溶断・グラインダー作業","34","火花が飛ぶ範囲、可燃物除去・養生、消火準備を確認。"],
+  ["火災警報発令中の火の使用","35","警報が発令されている場合に、行おうとする行為と制限内容を照合。"]
+  ]],
+  ["少量危険物・指定可燃物（条例第36〜41条の3）", [
+  ["危険物の現況量・指定数量倍率","36・37・39・54","容器表示や安全データシート（SDS）で法令上の品名を確認。同じ場所の容器・タンク・予備在庫を確認し、数量照合欄に入力。届出書の数量・保管場所と見比べる。"],
+  ["少量危険物の保管場所・容器・タンク","37の2〜38の2","屋内・屋外・タンク等を区別し、標識、容器、漏れ・流出防止、換気、火気管理と該当条文を確認。"],
+  ["動植物油類・可燃性固体類・可燃性液体類","38の3・40・54","油の品名・性状と数量を確認。第4類の動植物油類には特則があるため、一般の少量危険物の管理基準と区別。"],
+  ["その他の指定可燃物・再生資源燃料","41・41の2・54","綿花・紙くず・木材加工品・木くず・発泡樹脂等は品名と数量を選択。集積状況、火気管理、保管場所と届出基準を確認。"]
+  ]],
+  ["避難管理・催し（条例第42〜49条の3）", [
+  ["劇場等の客席・定員","42・43・43の2・46","屋内外を区別し、いすの固定、席間・通路、定員表示、所轄が認めた特例を確認。"],
+  ["キャバレー等・ディスコ・ライブハウスの客席","44・44の2","用途と客席配置を確認。用途ごとの客席・通路の条件を照合。"],
+  ["百貨店等の売場・展示場","45","対象階の売場・展示場面積を確認。150㎡以上の主要避難通路、600㎡以上の補助避難通路の条件を照合。"],
+  ["避難口・通路・防火区画の防火設備","47・48","避難口の開放、通路上の物品、防火区画の防火設備近くの可燃物を確認。"],
+  ["体育館・講堂等の一時使用","49・52","一時的に劇場等・展示場・ディスコ等に使う場合の準用条件と、催物開催の届出条件を確認。"],
+  ["催しの露店・火気器具・消火器","23・24〜27・52","多数の者が集まる催しで対象火気器具等を使う場合、消火器の準備と露店等の開設届を確認。"],
+  ["指定催しの防火管理","49の2・49の3","消防長・消防署長による指定の有無を確認。指定時は防火担当者、火災予防上必要な業務に関する計画と提出状況を確認。"]
+  ]]
+];
+const ORDINANCE_URL = 'https://www.hakusan-nonoichi.jp/shinsei/pdf/kasaiyoboujyourei.pdf';
+const HAZARD_ITEMS = [["第一類・第一種酸化性固体",50],
+  ["第一類・第二種酸化性固体",300],
+  ["第一類・第三種酸化性固体",1000],
+  ["第二類・硫化りん／赤りん／硫黄／第一種可燃性固体（該当品名を確認）",100],
+  ["第二類・鉄粉／第二種可燃性固体（該当品名を確認）",500],
+  ["第二類・引火性固体",1000],
+  ["第三類・カリウム／ナトリウム／アルキルアルミニウム／アルキルリチウム／第一種自然発火性物質及び禁水性物質",10],
+  ["第三類・黄りん",20],
+  ["第三類・第二種自然発火性物質及び禁水性物質",50],
+  ["第三類・第三種自然発火性物質及び禁水性物質",300],
+  ["第四類・特殊引火物",50,"L"],
+  ["第四類・第一石油類（非水溶性。例 ガソリン）",200,"L"],
+  ["第四類・第一石油類（水溶性）",400,"L"],
+  ["第四類・アルコール類",400,"L"],
+  ["第四類・第二石油類（非水溶性。例 灯油・軽油）",1000,"L"],
+  ["第四類・第二石油類（水溶性）",2000,"L"],
+  ["第四類・第三石油類（非水溶性）",2000,"L"],
+  ["第四類・第三石油類（水溶性）",4000,"L"],
+  ["第四類・第四石油類",6000,"L"],
+  ["第四類・動植物油類",10000,"L",true],
+  ["第五類・第一種自己反応性物質",10],
+  ["第五類・第二種自己反応性物質",100],
+  ["第六類・酸化性液体",300]];
+const COMBUSTIBLE_ITEMS = [["綿花類",200],
+  ["木毛及びかんなくず",400],
+  ["ぼろ及び紙くず",1000],
+  ["糸類",1000],
+  ["わら類",1000],
+  ["再生資源燃料",1000,"kg",1],
+  ["可燃性固体類",3000,"kg",1],
+  ["石炭・木炭類",10000],
+  ["可燃性液体類",2,"m³",1],
+  ["木材加工品及び木くず",10,"m³"],
+  ["合成樹脂類（発泡させたもの）",20,"m³",1],
+  ["合成樹脂類（その他）",3000,"kg",1]];
+
+function ordinanceDetailRows(x) {
+  return ORDINANCE_DETAILS.flatMap(([, rows]) => rows)
+    .filter(([name]) => x.ordinance?.details?.includes(name));
+}
+
+function ordinanceDetailPicker(x) {
+  return ORDINANCE_DETAILS.map(([category, rows], group) => {
+    const count = rows.filter(([name]) => x.ordinance?.details?.includes(name)).length;
+    return `<details class="card" id="ordinance-group-${group}" ${count ? 'open' : ''}>
+      <summary>${category}${count ? `（${count}件選択）` : ''}</summary>
+      ${rows.map(([name, article, hint], index) => `<div class="checkitem">
+        <label class="equip"><input type="checkbox" ${x.ordinance?.details?.includes(name) ? 'checked' : ''}
+          ${x.completedAt ? 'disabled' : ''} onchange="toggleOrdinanceDetail(${group},${index})">
+          <span>${name}（${ordinanceArticle(article)}）</span></label><p class="small">${hint}</p>
+      </div>`).join('')}
+    </details>`;
+  }).join('') + `<p class="small"><a href="${ORDINANCE_URL}" target="_blank" rel="noopener">所轄の火災予防条例（本文・別表）</a> ／
+     <a href="https://www.hakusan-nonoichi.jp/shinsei/shinsei_index.htm" target="_blank" rel="noopener">届出様式</a></p>`;
+}
+
+function toggleOrdinanceDetail(group, index) {
+  const x = current();
+  if (!x || x.completedAt) return;
+  const [name] = ORDINANCE_DETAILS[group][1][index];
+  const label = ordinanceDetailLabel(ORDINANCE_DETAILS[group][1][index]);
+  const selected = x.ordinance.details ||= [];
+  const existing = x.results?.['条例・管理事項']?.find(item => item.label === label);
+  if (selected.includes(name)) {
+    if (existing && (existing.value !== '未確認' || existing.reason || existing.note || existing.photos?.length)
+        && !confirm('この細目と入力済みの確認結果を削除しますか？')) {
+      document.querySelectorAll('#ordinance-group-' + group + ' input')[index].checked = true;
+      return;
+    }
+    x.ordinance.details = selected.filter(value => value !== name);
+  } else {
+    selected.push(name);
+  }
+  const labels = ordinanceChecks(x);
+  const previous = x.results?.['条例・管理事項'] || [];
+  x.results ||= {};
+  x.results['条例・管理事項'] = labels.map(label => previous.find(item => item.label === label)
+    || {label, value:'未確認', reason:'', note:''});
+  if (!labels.length) x.equipments = x.equipments.filter(type => type !== '条例・管理事項');
+  else if (!x.equipments.includes('条例・管理事項')) x.equipments.push('条例・管理事項');
+  x.equipments.sort(compareEquipment);
+  x.ledgerChecked = false;
+  changed('条例の確認細目を更新');
+  render();
+  document.getElementById('ordinance-group-' + group).open = true;
+}
+
+function ordinanceArticle(article) {
+  return article.split('・').map(part => part.split('〜').map(number => {
+    const [main, suffix] = number.split('の');
+    return '第' + main + '条' + (suffix ? 'の' + suffix : '');
+  }).join('〜')).join('・');
+}
+
+function ordinanceDetailLabel([name, article]) {
+  return name + '（' + ordinanceArticle(article) + '）';
+}
+
+function ordinanceDetailHint(item) {
+  return ORDINANCE_DETAILS.flatMap(([, rows]) => rows)
+    .find(row => ordinanceDetailLabel(row) === item.label)?.[2] || '';
+}
+
+
+function ordinanceQuantitySummary(x) {
+  const places = x.ordinance?.quantityPlaces || [];
+  if (!places.length) return '';
+  return `<details class="card"><summary>危険物・指定可燃物の数量照合</summary>${places.map((place, index) =>
+    `<h3>${esc(place.name || '場所 ' + (index + 1))}</h3><ul>${place.items.map(row => {
+      const item = getOrdinanceItem(row.item);
+      return `<li>${item ? esc(item.name) : '品目未確認'} ／ ${item && row.amount !== '' ? esc(row.amount) + ' ' + item.unit : '数量未入力'}</li>`;
+    }).join('')}</ul>${ordinanceQuantityResult(place)}`).join('')}</details>`;
+}
+function ordinanceQuantityPanel(x) {
+  const places = x.ordinance?.quantityPlaces || [];
+  if (x.completedAt && !places.length) return '';
+  const disabled = x.completedAt ? 'disabled' : '';
+  return `<section class="card"><h3>危険物・指定可燃物の数量照合</h3>
+    <p class="small">保管・取扱場所ごとに品目と現況量を入力します。危険物は同一場所の容器・予備在庫も含めて合計し、指定可燃物は同じ品目の合計量を1行に入力してください。区画を別の場所と扱えるか不明なら所轄に確認してください。</p>
+    ${places.map((place, pi) => `<fieldset class="card"><legend>場所 ${pi + 1}</legend>
+      <div class="field"><label for="ord-place-${pi}">保管・取扱場所</label><input id="ord-place-${pi}" ${disabled} placeholder="例：屋外倉庫" value="${esc(place.name)}" onchange="changeOrdinanceQuantity(this,${pi},'name')"></div>
+      <label><input type="checkbox" ${place.residence ? 'checked' : ''} ${disabled} onchange="changeOrdinanceQuantity(this,${pi},'residence')"> 個人の住居（危険物の届出基準に反映）</label>
+      ${place.items.map((row, ri) => {
+        const item = getOrdinanceItem(row.item);
+        const key = pi + '-' + ri;
+        return `<div class="checkitem">
+          <div class="field"><label for="ord-item-${key}">品目 ${ri + 1}</label>
+          <select id="ord-item-${key}" ${disabled} onchange="changeOrdinanceQuantity(this,${pi},'item',${ri})">
+            <option value="">品目未確認</option>
+            ${[['h','危険物',HAZARD_ITEMS],['c','指定可燃物',COMBUSTIBLE_ITEMS]].map(([kind,label,items]) =>
+              `<optgroup label="${label}">${items.map(([name], i) => `<option value="${kind}${i}" ${row.item === kind+i ? 'selected' : ''}>${esc(name)}</option>`).join('')}</optgroup>`).join('')}
+          </select></div>
+          ${item ? `<div class="small">${ordinanceThreshold(item, place.residence)}</div>
+          <div class="field"><label for="ord-amount-${key}">現況量（${item.unit}）</label><input id="ord-amount-${key}" type="number" min="0" step="any" inputmode="decimal"
+            ${disabled} value="${esc(row.amount)}" oninput="changeOrdinanceQuantity(this,${pi},'amount',${ri})"></div>` : ''}
+          ${disabled ? '' : `<button type="button" class="ghost" onclick="removeOrdinanceQuantity(${pi},${ri})">品目を削除</button>`}
+        </div>`;
+      }).join('')}
+      <div id="ord-result-${pi}" aria-live="polite">${ordinanceQuantityResult(place)}</div>
+      ${disabled ? '' : `<div class="actions"><button type="button" class="secondary" onclick="addOrdinanceQuantity(${pi})">品目を追加</button>
+      <button type="button" class="ghost" onclick="removeOrdinanceQuantity(${pi})">場所を削除</button></div>`}
+    </fieldset>`).join('')}
+    ${disabled ? '' : '<button type="button" class="secondary" onclick="addOrdinanceQuantity()">保管・取扱場所を追加</button>'}
+    <p class="small"><a href="https://laws.e-gov.go.jp/law/334CO0000000306" target="_blank" rel="noopener">危険物政令 別表第三・第四</a> ／
+    <a href="https://laws.e-gov.go.jp/law/323AC1000000186#Mp-At_10" target="_blank" rel="noopener">消防法第10条</a> ／
+    <a href="${ORDINANCE_URL}" target="_blank" rel="noopener">条例第36〜41条の3・第54条、別表第7</a></p>
+  </section>`;
+}
+
+function getOrdinanceItem(key) {
+  if (!/^[hc]\d+$/.test(key)) return null;
+  const hazard = key.startsWith('h');
+  const row = key && (hazard ? HAZARD_ITEMS : COMBUSTIBLE_ITEMS)[Number(key.slice(1))];
+  if (!row) return null;
+  const [name, threshold, unit = 'kg', special] = row;
+  return {name, threshold, unit, hazard, special};
+}
+
+function ordinanceThreshold(item, residence) {
+  const {threshold, unit, hazard, special} = item;
+  const quantity = value => value.toLocaleString('ja-JP') + ' ' + unit;
+  if (!hazard) return `指定可燃物の基準 ${quantity(threshold)}以上 ／ 届出基準 ${quantity(threshold * (special || 5))}以上`;
+  return `指定数量 ${quantity(threshold)} ／ 単一品目の少量危険物の範囲 ${quantity(threshold / 5)}以上〜${quantity(threshold)}未満`
+    + ` ／ 届出の下限 ${quantity(threshold * (residence ? 0.5 : 0.2))}`
+    + (special ? ' ／ 動植物油類の管理は条例第38条の3・第40条の特則を確認' : '');
+}
+
+function ordinanceQuantityResult(place) {
+  const items = place.items.map(row => ({item: getOrdinanceItem(row.item), amount: row.amount}));
+  const entered = items.filter(({item, amount}) => item && amount !== '' && Number.isFinite(Number(amount)) && Number(amount) >= 0);
+  const hazard = entered.filter(({item}) => item.hazard);
+  const alerts = [];
+  if (entered.length < items.length) alerts.push('品目・数量に未入力があります。入力済みの量で比較しています。');
+  if (hazard.length) {
+    const ratio = hazard.reduce((total, row) => total + Number(row.amount) / row.item.threshold, 0);
+    const reaches = limit => Number(ratio.toPrecision(15)) >= limit;
+    const status = reaches(1) ? '指定数量以上。少量危険物の範囲を外れています。許可・承認の有無を確認してください。'
+      : reaches(0.2) ? '少量危険物の数量範囲です。届出基準と現況量を照合してください。'
+      : '少量危険物の数量基準未満です。条例第36条の貯蔵・取扱基準を確認してください。';
+    alerts.push(`危険物の合計 ${Number(ratio.toPrecision(15))}倍。 ${status}`);
+    if (reaches(place.residence ? 0.5 : 0.2) && !reaches(1)) {
+      alerts.push('入力済みの合計倍率は第54条の届出基準に達しています。届出書の数量・保管場所と照合してください。');
+    }
+    if (hazard.some(({item}) => item.special)) alerts.push('動植物油類を含みます。条例第38条の3・第40条の特則を確認してください。');
+  }
+  const combustible = new Map();
+  for (const {item, amount} of entered.filter(({item}) => !item.hazard)) {
+    const old = combustible.get(item.name);
+    combustible.set(item.name, {item, amount: Number(amount) + (old?.amount || 0)});
+  }
+  for (const {item, amount} of combustible.values()) {
+    const status = amount >= item.threshold * (item.special || 5) ? '指定可燃物に該当し、届出の数量基準以上'
+      : amount >= item.threshold ? '指定可燃物に該当（届出の数量基準未満）' : 'この品目の指定可燃物の数量基準未満';
+    alerts.push(item.name + ' ' + amount.toLocaleString('ja-JP', {maximumFractionDigits: 8}) + ' ' + item.unit + ' ／ ' + status);
+  }
+  return alerts.map(line => `<p class="warnbox">${esc(line)}</p>`).join('');
+}
+
+function updateOrdinanceQuantities(message) {
+  changed(message);
+  render();
+}
+
+function addOrdinanceQuantity(pi) {
+  const x = current();
+  if (!x || x.completedAt) return;
+  const row = {item:'', amount:''};
+  const places = x.ordinance.quantityPlaces ||= [];
+  if (pi === undefined) places.push({name:'', residence:false, items:[row]});
+  else places[pi].items.push(row);
+  updateOrdinanceQuantities('条例の数量照合欄を追加');
+}
+
+function removeOrdinanceQuantity(pi, ri) {
+  const x = current();
+  if (!x || x.completedAt || !confirm('入力した数量照合の情報を削除しますか？')) return;
+  const places = x.ordinance.quantityPlaces;
+  if (ri === undefined) places.splice(pi, 1);
+  else places[pi].items.splice(ri, 1);
+  updateOrdinanceQuantities('条例の数量照合欄を削除');
+}
+
+function changeOrdinanceQuantity(input, pi, field, ri) {
+  const x = current();
+  if (!x || x.completedAt) return;
+  const place = x.ordinance.quantityPlaces[pi];
+  if (field === 'item') {
+    place.items[ri] = {item: input.value, amount:''};
+    updateOrdinanceQuantities('条例の数量照合の品目を変更');
+    return;
+  }
+  if (field === 'residence') {
+    place.residence = input.checked;
+    updateOrdinanceQuantities('条例の数量照合の住居区分を変更');
+    return;
+  }
+  if (field === 'name') place.name = input.value.trim();
+  else place.items[ri].amount = input.validity.valid ? input.value : '';
+  save();
+  document.getElementById('ord-result-' + pi).innerHTML = ordinanceQuantityResult(place);
+}
+
 const CHECKS={
 '消火器':['設置場所・標識','外形・損傷','安全栓・封印','圧力・指示表示'],
 '屋内消火栓設備':['消火栓箱・表示','ホース・ノズル','バルブ・開閉状態','ポンプ・起動表示'],
@@ -168,7 +460,7 @@ if(c==='16の2'||c==='16の3'||above>=11||below>=3)hit('非常警報設備','令
 if(['6イ1','6イ2','6イ3','6ロ','16の2','16の3'].includes(c))hit('火災通報装置','令第23条の用途区分に該当する可能性');else if((c1||c2||c==='4'||c==='5イ'||c==='6イ4'||c==='6ハ'||c==='6ニ'||c==='12'||c==='17')&&a>=500)hit('火災通報装置','令第23条の面積基準（500㎡以上）に該当する可能性');else if((c3||c==='5ロ'||c==='7'||c==='8'||c==='9イ'||c==='9ロ'||c==='10'||c==='11'||c==='13イ'||c==='13ロ'||c==='14'||c==='15')&&a>=1000)hit('火災通報装置','令第23条の面積基準（1,000㎡以上）に該当する可能性');
 return all.map(name=>({name,hit:hits[name]||'',note:!c||!a?'用途区分と延べ面積を入力してください。':((c==='3イ'||c==='3ロ')&&x.cookingFire!=='はい'?'飲食店等では火を使用する設備・器具の有無を確認してください。':(c16||x.mixedUse==='はい'?'複合用途の各用途部分の床面積・区画条件を別途確認してください。':((above>=4||below>0)?'階ごとの床面積、無窓階、構造・内装制限等の条件も別途確認してください。':'この簡易条件で該当を確認できない場合も、設置不要を意味しません。')))}));}
 const K='inspection-prototype-v1';let data=load(),page='home',id=null,equipIndex=0,ret='summary';
-for(let x of data.inspections||[]){x.floors=x.floors||[];x.ordinance=x.ordinance||{categories:[],notes:''};x.occupantsEmployees=x.occupantsEmployees||'';x.occupantsOthers=x.occupantsOthers||'';x.fireManagerStatus=x.fireManagerStatus||'';x.firePlanStatus=x.firePlanStatus||'';if(x.ordinance.categories?.length){CHECKS['条例・管理事項']=ordinanceChecks(x);if(x.equipments?.includes('条例・管理事項'))x.results['条例・管理事項']=CHECKS['条例・管理事項'].map(label=>x.results['条例・管理事項']?.find(a=>a.label===label)||({label,value:'未確認',reason:'',note:''}))}}
+for(let x of data.inspections||[]){x.floors=x.floors||[];x.ordinance=x.ordinance||{categories:[],notes:''};x.occupantsEmployees=x.occupantsEmployees||'';x.occupantsOthers=x.occupantsOthers||'';x.fireManagerStatus=x.fireManagerStatus||'';x.firePlanStatus=x.firePlanStatus||'';if(x.ordinance.categories?.length||x.ordinance.details?.length){CHECKS['条例・管理事項']=ordinanceChecks(x);if(x.equipments?.includes('条例・管理事項'))x.results['条例・管理事項']=CHECKS['条例・管理事項'].map(label=>x.results?.['条例・管理事項']?.find(a=>a.label===label)||({label,value:'未確認',reason:'',note:''}))}}
 function load(){try{let d=JSON.parse(localStorage.getItem(K))||{inspections:[],people:[]};for(let x of d.inspections||[]){if((x.equipments||[]).includes('誘導灯・誘導標識')){x.equipments=x.equipments.flatMap(t=>t==='誘導灯・誘導標識'?['誘導灯','誘導標識']:[t]);let old=x.results?.['誘導灯・誘導標識']||[];x.results=x.results||{};for(let t of ['誘導灯','誘導標識']){x.results[t]=CHECKS[t].map(label=>{let sourceLabel=label==='非常電源・予備電源'?'非常電源の表示':label==='誘導方向・視認性'?'設置場所・視認性':label;let item=old.find(a=>a.label===sourceLabel);return item?{...item,label}:{label,value:'未確認',reason:'',note:''}})}delete x.results['誘導灯・誘導標識']}}return d}catch{return{inspections:[],people:[]}}}
 function save(){localStorage.setItem(K,JSON.stringify(data))}
 function clean(){let n=Date.now();data.inspections=data.inspections.filter(x=>!x.completedAt||n-new Date(x.completedAt).getTime()<7*864e5);save()}
@@ -183,8 +475,8 @@ function syncFloors(){let x=current();if(!x||x.completedAt)return;let count=Math
 function floorLabel(i,x){let below=Math.max(0,Number(x.floorsBelow)||0);return i<below?`地下${below-i}階`:`${i-below+1}階`}
 function floorAreaWarning(x){let floors=x.floors||[];if(!floors.length||floors.some(f=>f.area===''||f.area===null||f.area===undefined))return '';let total=Number(x.totalArea),sum=floors.reduce((n,f)=>n+(Number(f.area)||0),0);return total>0&&Math.abs(total-sum)>0.01?`<div class="warnbox">全体面積と階の面積合計が異なります。別棟などがないか確認してください。</div>`:''}
 function snapFloor(i,key,value){let x=current();if(!x||x.completedAt)return;x.floors=x.floors||[];if(!x.floors[i])x.floors[i]={label:floorLabel(i,x),area:'',useCategory:x.useCategory||'',structure:x.structure||''};if(x.floors[i][key]!==value){x.floors[i][key]=value;changed(`${x.floors[i].label}の${key}を更新`)}}
-function ordinanceChecks(x){let labels=[];if(!x.ordinance)return labels;for(let c of x.ordinance.categories||[]){if(c==='火を使用する設備（条例第3〜22条）')labels.push('火を使用する設備の位置・構造・管理状況');if(c==='火気器具・火の使用制限（条例第23〜35条）')labels.push('火気器具の取扱い・火の使用制限の遵守状況');if(c==='少量危険物・指定可燃物（条例第36〜41条の3）')labels.push('少量危険物・指定可燃物の貯蔵・取扱状況');if(c==='避難管理・催し（条例第42〜49条の3）')labels.push('避難管理・催しに関する届出・管理状況')}return labels}
-function toggleOrdinance(c){let x=current();if(!x||x.completedAt)return;x.ordinance=x.ordinance||{categories:[],notes:''};x.ordinance.categories=x.ordinance.categories||[];x.ordinance.categories=x.ordinance.categories.includes(c)?x.ordinance.categories.filter(v=>v!==c):[...x.ordinance.categories,c];CHECKS['条例・管理事項']=ordinanceChecks(x);x.results=x.results||{};let old=x.results['条例・管理事項']||[];x.results['条例・管理事項']=CHECKS['条例・管理事項'].map(label=>old.find(a=>a.label===label)||({label,value:'未確認',reason:'',note:''}));if(x.ordinance.categories.length&&!x.equipments.includes('条例・管理事項')){x.equipments.push('条例・管理事項');x.equipments.sort(compareEquipment)}if(!x.ordinance.categories.length)x.equipments=x.equipments.filter(t=>t!=='条例・管理事項');x.ledgerChecked=false;changed('火災予防条例の確認分野を更新');render()}function snapOrdinanceNote(v){let x=current();if(!x||x.completedAt)return;x.ordinance=x.ordinance||{categories:[],notes:''};if(x.ordinance.notes!==v){x.ordinance.notes=v;changed('条例関係台帳情報を更新')}}
+function ordinanceChecks(x){let labels=[];if(!x.ordinance)return labels;for(let c of x.ordinance.categories||[]){if(c==='火を使用する設備（条例第3〜22条）')labels.push('火を使用する設備の位置・構造・管理状況');if(c==='火気器具・火の使用制限（条例第23〜35条）')labels.push('火気器具の取扱い・火の使用制限の遵守状況');if(c==='少量危険物・指定可燃物（条例第36〜41条の3）')labels.push('少量危険物・指定可燃物の貯蔵・取扱状況');if(c==='避難管理・催し（条例第42〜49条の3）')labels.push('避難管理・催しに関する届出・管理状況')}return labels.concat(ordinanceDetailRows(x).map(ordinanceDetailLabel))}
+function snapOrdinanceNote(v){let x=current();if(!x||x.completedAt)return;x.ordinance=x.ordinance||{categories:[],notes:''};if(x.ordinance.notes!==v){x.ordinance.notes=v;changed('条例関係台帳情報を更新')}}
 function setLedgerStatus(checked) {
   const x = current();
   if (x.completedAt) return;
@@ -322,7 +614,7 @@ ${a.reason?`<div class="small">${a.value==='要確認'?'確認理由':'不備理
 if(page==='home'){app.innerHTML=`<div class="row"><h1 class="title">検査一覧</h1><button onclick="beginNew()">＋ 新しい検査</button></div><div class="warnbox">検査データと写真はこのブラウザ内に保存され、写真を開いて「端末に保存（JPEG）」を押すと、印刷用の写真を端末へ書き出せます。サーバーへは送信しません。写真は圧縮コピーを記録に保存し、元画像は移動・削除しません。検査記録を削除すると、基本情報・判定・メモ・写真・履歴も一緒に削除されます。完了記録は7日経過後、次回起動時に削除します。端末へ書き出した写真は端末側で管理してください。ブラウザデータの消去や端末変更でも失われます。このアプリ自体にパスコード保護や暗号化はありません。</div><div class="card"><h3>担当者リスト</h3><div class="row"><input id="personNew" placeholder="担当者名を追加" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px"><button onclick="addPerson()">追加</button></div><p class="small">${data.people.map(p=>`${esc(p)} <span class="click" onclick="removePerson('${esc(p)}')">削除</span>`).join('　')||'未登録'}</p></div>${data.inspections.map(x=>`<div class="card"><div class="row"><div><h3>${esc(x.name||'名称未設定')}</h3><div class="small">${esc(x.kind)} ・ ${esc((x.date||'').replace('T',' '))}</div><div class="small">${esc(x.person||'担当者未設定')}</div></div><span class="badge ${x.completedAt?'good':'warn'}">${x.completedAt?'完了':'進行中'}</span></div><div class="actions"><button class="secondary" onclick="openInspection('${x.id}')">${x.completedAt?'閲覧':'続きから'}</button><button class="ghost" onclick="deleteInspection('${x.id}')">削除</button></div></div>`).join('')||'<div class="empty">検査記録はまだありません。<br>「新しい検査」から始められます。</div>'}<p class="footnote">Ver.0.1の仮項目による操作確認用です。法定点検や消防署への提出に使用しないでください。完了記録は7日経過後、アプリを開いたときに削除されます。</p>`;return}
 let x=current();if(!x){page='home';return render()}
 if(page==='info'){app.innerHTML=`<h1 class="title">検査情報</h1><p class="sub">分かる範囲で入力してください。</p>${field('予定名称','name',x.name,'text','例：○○ビル 立入検査')}<div class="field"><label>検査種別</label><select data-key="kind" ${x.completedAt?'disabled':''}>${['立入検査','消防用設備等の点検','その他'].map(s=>`<option ${x.kind===s?'selected':''}>${s}</option>`).join('')}</select></div>${field('検査日時','date',x.date,'datetime-local')}${field('担当者','person',x.person,'text','担当者名')}<p class="small">${data.people.map(p=>`<button class="ghost" onclick="document.querySelector('[data-key=person]').value='${esc(p)}';snapField('person','${esc(p)}')">${esc(p)}</button>`).join(' ')}</p>${field('検査範囲','scope',x.scope,'text','例：1階・共用部')} ${field('対象物名','building',x.building,'text','建物名')}${field('住所','address',x.address,'text','住所')}<div class="actions"><button onclick="setPage('equip')">台帳を見て確認項目を選ぶ →</button></div><details class="card" id="buildingDetails"><summary>建物情報・防火管理（任意）</summary>${field('地上階数','floorsAbove',x.floorsAbove,'number','例：5')}${field('地下階数','floorsBelow',x.floorsBelow,'number','例：1')}<div class="actions"><button type="button" class="secondary" onclick="syncFloors()">階数を反映して階別情報を入力</button></div>${field('延べ面積（㎡）','totalArea',x.totalArea,'number','例：1200')}<div class="card"><h3>階別情報（任意）</h3><p class="small">建物全体の用途・構造を各階に初期表示します。各階で変更できます。階別面積の合計と延べ面積が異なる場合は警告のみ表示します。</p>${(x.floors||[]).map((f,i)=>`<div class="card"><h3>${esc(f.label||floorLabel(i,x))}</h3><div class="field"><label>床面積（㎡）</label><input type="number" value="${esc(f.area||'')}" ${x.completedAt?'disabled':''} onchange="snapFloor(${i},'area',this.value)"></div><div class="field"><label>用途（建物全体から初期入力・変更可）</label><select ${x.completedAt?'disabled':''} onchange="snapFloor(${i},'useCategory',this.value)"><option value="">選択してください</option>${FIRE_USES.map(([c,n])=>`<option value="${c}" ${f.useCategory===c?'selected':''}>${c}　${n}</option>`).join('')}</select></div><div class="field"><label>構造（建物全体から初期入力・変更可）</label><select ${x.completedAt?'disabled':''} onchange="snapFloor(${i},'structure',this.value)">${['','耐火','準耐火','RC造','SRC造','S造','木造','その他'].map(v=>`<option ${f.structure===v?'selected':''}>${v||'不明'}</option>`).join('')}</select></div></div>`).join('')}</div>${floorAreaWarning(x)}<div class="field"><label>主な用途区分（消防法施行令 別表第一）</label><select data-key="useCategory" ${x.completedAt?'disabled':''}><option value="">選択してください</option>${FIRE_USES.map(([c,n])=>`<option value="${c}" ${x.useCategory===c?'selected':''}>${c}　${n}</option>`).join('')}</select><div class="small">複合用途やテナントごとに用途が異なる場合は、現時点では「要確認」扱いです。</div></div>${field('収容人員 総数（人・任意）','occupants',x.occupants,'number','例：80')}<details class="card" ${x.occupantsEmployees||x.occupantsOthers?'open':''}><summary>収容人員の内訳（任意）</summary>${field('従業員数（人）','occupantsEmployees',x.occupantsEmployees,'number','任意')}${field('その他の算定人数（人）','occupantsOthers',x.occupantsOthers,'number','任意')}<p class="small">総数と内訳は個別に入力できます。自動計算は行いません。</p></details><div class="field"><label>複合用途（複数の用途）</label><select data-key="mixedUse" ${x.completedAt?'disabled':''}><option value="" ${!x.mixedUse?'selected':''}>不明</option>${['はい','いいえ'].map(s=>`<option ${x.mixedUse===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label>火を使用する設備・器具（飲食店等）</label><select data-key="cookingFire" ${x.completedAt?'disabled':''}><option value="" ${!x.cookingFire?'selected':''}>不明</option>${['はい','いいえ'].map(s=>`<option ${x.cookingFire===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label>構造（分かる場合）</label><select data-key="structure" ${x.completedAt?'disabled':''}><option value="" ${!x.structure?'selected':''}>不明</option>${['耐火','準耐火','RC造','SRC造','S造','木造','その他'].map(s=>`<option ${x.structure===s?'selected':''}>${s}</option>`).join('')}</select></div><h2>防火管理情報</h2>${field('防火管理者名','fireManagerName',x.fireManagerName,'text','任意')}<div class="field"><label>防火管理者選任・届出の確認</label><select data-key="fireManagerStatus" ${x.completedAt?'disabled':''}>${['','未確認','確認済','対象外'].map(v=>`<option value="${v}" ${x.fireManagerStatus===v?'selected':''}>${v||'選択してください'}</option>`).join('')}</select><div class="small">必要に応じて対象物台帳へ記録・修正してください。</div></div><div class="field"><label>消防計画作成・届出の確認</label><select data-key="firePlanStatus" ${x.completedAt?'disabled':''}>${['','未確認','確認済','対象外'].map(v=>`<option value="${v}" ${x.firePlanStatus===v?'selected':''}>${v||'選択してください'}</option>`).join('')}</select><div class="small">届出の要否や時期の確認を促す項目です。検査時の確認対象とするかは運用に合わせてください。</div></div>${field('防火管理メモ（任意）','fireAdminNote',x.fireAdminNote,'text','台帳への追記・確認事項など')}</details>${ledgerDifference(x)}<div class="actions"><button class="secondary" onclick="setPage('home')">一覧へ</button></div>`}
-if(page==='equip'){app.innerHTML=`<h1 class="title">確認項目の選択 ${x.completedAt?'<span class="badge good">閲覧のみ</span>':''}</h1><p class="sub">紙の対象物台帳を見ながら、今回確認する項目を選んでください。</p><div class="grid">${TYPES.slice(0,-1).map((t,i)=>`<label class="equip"><input type="checkbox" ${x.equipments.includes(t)?'checked':''} ${x.completedAt?'disabled':''} onchange="selectEquip(${i})"><span>${t}</span></label>`).join('')}</div><h2>火災予防条例関係（対象物台帳から任意入力）</h2><p class="small">該当する分野を選ぶと、条例・管理事項のチェック項目を通常の検査チェックリストとまとめ画面に追加します。条例の適用を確定する機能ではありません。</p><div class="grid">${['火を使用する設備（条例第3〜22条）','火気器具・火の使用制限（条例第23〜35条）','少量危険物・指定可燃物（条例第36〜41条の3）','避難管理・催し（条例第42〜49条の3）'].map(c=>`<label class="equip"><input type="checkbox" ${x.ordinance?.categories?.includes(c)?'checked':''} ${x.completedAt?'disabled':''} onchange="toggleOrdinance('${c}')"><span>${c}</span></label>`).join('')}</div><div class="field"><label>台帳記載の条例関係情報（任意）</label><textarea ${x.completedAt?'disabled':''} placeholder="設備・物品・届出情報など、台帳の内容を記載" onchange="snapOrdinanceNote(this.value)">${esc(x.ordinance?.notes||'')}</textarea></div><h2>避難経路・開口部</h2>
+if(page==='equip'){app.innerHTML=`<h1 class="title">確認項目の選択 ${x.completedAt?'<span class="badge good">閲覧のみ</span>':''}</h1><p class="sub">紙の対象物台帳を見ながら、今回確認する項目を選んでください。</p><div class="grid">${TYPES.slice(0,-1).map((t,i)=>`<label class="equip"><input type="checkbox" ${x.equipments.includes(t)?'checked':''} ${x.completedAt?'disabled':''} onchange="selectEquip(${i})"><span>${t}</span></label>`).join('')}</div><h2>火災予防条例関係（任意入力）</h2><p class="small">設備名・器具名・使用状況から分類を開き、今回確認する細目を選びます。選んだ細目が検査チェックリストに追加されます。</p>${ordinanceDetailPicker(x)}${ordinanceQuantityPanel(x)}<div class="field"><label>台帳記載の条例関係情報（任意）</label><textarea ${x.completedAt?'disabled':''} placeholder="設備・物品・届出情報など、台帳の内容を記載" onchange="snapOrdinanceNote(this.value)">${esc(x.ordinance?.notes||'')}</textarea></div><h2>避難経路・開口部</h2>
 <label class="equip"><input type="checkbox" ${x.equipments.includes(EVACUATION)?'checked':''}
   ${x.completedAt?'disabled':''} onchange="toggleEvacuation()"><span>避難経路・開口部を確認する</span></label>
 ${ordinancePreviewPicker(x)}<h2>その他の確認項目</h2>
@@ -333,7 +625,7 @@ ${x.completedAt?'':`<form class="field" onsubmit="event.preventDefault();addCust
 <button class="secondary">確認項目を追加</button></form>`}
 <div class="card"><label><input type="checkbox" ${x.ledgerChecked?'checked':''} ${x.completedAt?'disabled':''} onchange="setLedgerStatus(this.checked)"> 台帳と照合済み</label></div>
 ${estimateDetails(x)}<div class="field"><label>全体メモ</label><textarea data-key="memo" ${x.completedAt?'disabled':''} placeholder="任意">${esc(x.memo)}</textarea></div><div class="field"><label>写真（任意）</label>${x.completedAt?'':`<input type="file" accept="image/*" capture="environment" id="photoIn">`}${x.photo?`<img class="photo" src="${x.photo}" alt="写真">`:''}<div class="small">写真はこの検査記録内に保存され、記録の削除と一緒に消えます。</div></div><div class="actions"><button class="secondary" onclick="setPage('info')">← 検査情報</button><button onclick="startChecks()">点検項目へ →</button></div>`}
-if(page==='checks'){let t=x.equipments[equipIndex];if(!t){page='equip';return render()}let period=(x.periodChecks||{})[t]||{status:'未確認',note:''};app.innerHTML=`<div class="row"><div><h1 class="title">${t}</h1><div class="sub">${equipIndex+1} / ${x.equipments.length} 設備${x.completedAt?' ・ 閲覧のみ':''}</div></div><button class="ghost" onclick="setPage('summary')">まとめを確認</button></div><div class="warnbox">操作確認用の仮項目です。正式な点検項目ではありません。</div>${t===EVACUATION?evacuationReferences():(t===CUSTOM||t===ORDINANCE_PREVIEW)?'':`<details class="card"><summary>確認ポイント・管理ポイント・法的根拠</summary><p><b>確認ポイント</b></p><ul>${(t==='条例・管理事項'?ordinanceChecks(x):CHECKS[t]).map(v=>`<li>${esc(v)}</li>`).join('')}</ul><p><b>管理ポイント</b></p><p>${MANAGEMENT[t]} 具体的な適用条件や例外は、用途・構造・規模等を含めて法令と所轄消防本部の基準で確認してください。</p><p><a href="${GUIDANCE[t].url}" target="_blank" rel="noopener">${GUIDANCE[t].article}${t==='条例・管理事項'?'（PDF）':'（e-Gov）'}</a><br><a href="${GUIDANCE[t].guide}" target="_blank" rel="noopener">消防庁 点検基準・点検要領・点検票</a></p><p><b>よくある不備</b></p><ul>${GUIDANCE[t].common.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></details>`}${ledgerDifference(x)}${!hasPeriodCheck(x,t)?'':`<div class="card" id="period-check"><b>法定点検期間の確認</b><div class="field"><label>確認結果</label><select ${x.completedAt?'disabled':''} onchange="snapPeriodCheck('${esc(t)}','status',this.value)"><option ${period.status==='未確認'?'selected':''}>未確認</option><option ${period.status==='期間内'?'selected':''}>期間内</option><option ${period.status==='期間外'?'selected':''}>期間外</option></select></div><div class="field"><label>自由記載</label><textarea ${x.completedAt?'disabled':''} placeholder="確認内容など（任意）" onchange="snapPeriodCheck('${esc(t)}','note',this.value)">${esc(period.note||'')}</textarea></div></div>`}${(x.results[t]||[]).map((a,i)=>`<div class="checkitem" id="item-${i}"><div class="checktitle">${esc(a.label)}</div>${t===EVACUATION?evacuationEvidence(a,i,x.completedAt):t===ORDINANCE_PREVIEW?ordinancePreviewEvidence(a,i,x.completedAt):''}<div class="choices">${['良好','不備あり','要確認','該当なし','未確認'].map(v=>`<button class="choice ${a.value===v?'active':''}" data-v="${v}" ${x.completedAt?'disabled':''} onclick="setVerdict('${esc(t)}',${i},'${v}')">${v}</button>`).join('')}</div>${a.value==='不備あり'?`<div class="field itemreason"><label>不備理由（候補選択または自由入力・必須）</label><select ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)"><option value="">理由を選択してください</option>${(GUIDANCE[t]?.common || []).map(v=>`<option value="${esc(v)}" ${a.reason===v?'selected':''}>${esc(v)}</option>`).join('')}<option value="その他" ${a.reason==='その他'?'selected':''}>その他</option></select><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)" placeholder="その他の理由・補足">${esc(a.reason)}</textarea></div>`:''}${a.value==='要確認'?`<div class="field"><label>確認理由（任意）</label><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)" placeholder="確認が必要な理由">${esc(a.reason)}</textarea></div>`:''}<div class="field"><label>メモ（任意）</label><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'note',this.value)" placeholder="補足">${esc(a.note)}</textarea></div><div class="field"><label>${t===EVACUATION?'現場写真（帰署後の検討用・任意）':'写真（任意・項目ごとに保存）'}</label>${x.completedAt?'':`<input type="file" accept="image/*" capture="environment" data-item-photo="${esc(t)}" data-item-index="${i}">`}${(a.photos||[]).map((src,j)=>`<span class="item-photo"><img class="item-photo-img" src="${src}" alt="${esc(a.label)}の写真">${x.completedAt?'':`<button type="button" class="ghost" onclick="removeItemPhoto('${esc(t)}',${i},${j})">削除</button>`}</span>`).join('')}<div class="small">写真の圧縮コピーはこの項目の記録に保存され、検査記録と一緒に削除されます。${t===EVACUATION?' 帰署後は同じ端末・ブラウザで確認してください。人物や氏名などが写り込まないようにしてください。':''}</div></div></div>`).join('')}<div class="actions"><button class="secondary" onclick="equipIndex=Math.max(0,equipIndex-1);render();scrollPageTop()">← 前の設備</button><button onclick="nextEquip()">${equipIndex<x.equipments.length-1?'次の設備 →':'まとめを確認 →'}</button></div>`}if(page==='summary'){app.innerHTML=`<div class="row"><h1 class="title">検査まとめ</h1><span class="badge ${x.completedAt?'good':'warn'}">${x.completedAt?'完了（閲覧のみ）':'完了前'}</span></div>${summaryCard()}${x.completedAt?`<h2>検査完了後メモ</h2><div class="field"><label>検査完了後に追記するメモ</label><textarea placeholder="結果は変更せず、補足事項を記録できます" onblur="savePostCompletionMemo(this)">${esc(x.postCompletionMemo||'')}</textarea></div>`:''}${!x.completedAt?`<div class="actions"><button class="secondary" onclick="setPage('equip')">設備・メモを修正</button><button onclick="finish()">検査完了</button></div><p class="small">「検査完了」後は編集できません。7日間の閲覧後、次回起動時に自動削除されます。</p>`:`<div class="actions"><button class="secondary" onclick="setPage('home')">一覧へ戻る</button></div>`}`}
+if(page==='checks'){let t=x.equipments[equipIndex];if(!t){page='equip';return render()}let period=(x.periodChecks||{})[t]||{status:'未確認',note:''};app.innerHTML=`<div class="row"><div><h1 class="title">${t}</h1><div class="sub">${equipIndex+1} / ${x.equipments.length} 設備${x.completedAt?' ・ 閲覧のみ':''}</div></div><button class="ghost" onclick="setPage('summary')">まとめを確認</button></div><div class="warnbox">操作確認用の仮項目です。正式な点検項目ではありません。</div>${t===EVACUATION?evacuationReferences():(t===CUSTOM||t===ORDINANCE_PREVIEW)?'':`<details class="card"><summary>確認ポイント・管理ポイント・法的根拠</summary><p><b>確認ポイント</b></p><ul>${(t==='条例・管理事項'?ordinanceChecks(x):CHECKS[t]).map(v=>`<li>${esc(v)}</li>`).join('')}</ul><p><b>管理ポイント</b></p><p>${MANAGEMENT[t]} 具体的な適用条件や例外は、用途・構造・規模等を含めて法令と所轄消防本部の基準で確認してください。</p><p><a href="${GUIDANCE[t].url}" target="_blank" rel="noopener">${GUIDANCE[t].article}${t==='条例・管理事項'?'（PDF）':'（e-Gov）'}</a><br><a href="${GUIDANCE[t].guide}" target="_blank" rel="noopener">消防庁 点検基準・点検要領・点検票</a></p><p><b>よくある不備</b></p><ul>${GUIDANCE[t].common.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></details>`}${t==='条例・管理事項'&&x.ordinance?.details?.some(name=>ORDINANCE_DETAILS[2][1].some(([item])=>item===name))?ordinanceQuantityPanel(x):''}${ledgerDifference(x)}${!hasPeriodCheck(x,t)?'':`<div class="card" id="period-check"><b>法定点検期間の確認</b><div class="field"><label>確認結果</label><select ${x.completedAt?'disabled':''} onchange="snapPeriodCheck('${esc(t)}','status',this.value)"><option ${period.status==='未確認'?'selected':''}>未確認</option><option ${period.status==='期間内'?'selected':''}>期間内</option><option ${period.status==='期間外'?'selected':''}>期間外</option></select></div><div class="field"><label>自由記載</label><textarea ${x.completedAt?'disabled':''} placeholder="確認内容など（任意）" onchange="snapPeriodCheck('${esc(t)}','note',this.value)">${esc(period.note||'')}</textarea></div></div>`}${(x.results[t]||[]).map((a,i)=>`<div class="checkitem" id="item-${i}"><div class="checktitle">${esc(a.label)}</div>${t===EVACUATION?evacuationEvidence(a,i,x.completedAt):t===ORDINANCE_PREVIEW?ordinancePreviewEvidence(a,i,x.completedAt):t==='条例・管理事項'&&ordinanceDetailHint(a)?`<p class="small">${esc(ordinanceDetailHint(a))}</p>`:''}<div class="choices">${['良好','不備あり','要確認','該当なし','未確認'].map(v=>`<button class="choice ${a.value===v?'active':''}" data-v="${v}" ${x.completedAt?'disabled':''} onclick="setVerdict('${esc(t)}',${i},'${v}')">${v}</button>`).join('')}</div>${a.value==='不備あり'?`<div class="field itemreason"><label>不備理由（候補選択または自由入力・必須）</label><select ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)"><option value="">理由を選択してください</option>${(GUIDANCE[t]?.common || []).map(v=>`<option value="${esc(v)}" ${a.reason===v?'selected':''}>${esc(v)}</option>`).join('')}<option value="その他" ${a.reason==='その他'?'selected':''}>その他</option></select><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)" placeholder="その他の理由・補足">${esc(a.reason)}</textarea></div>`:''}${a.value==='要確認'?`<div class="field"><label>確認理由（任意）</label><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'reason',this.value)" placeholder="確認が必要な理由">${esc(a.reason)}</textarea></div>`:''}<div class="field"><label>メモ（任意）</label><textarea ${x.completedAt?'disabled':''} onchange="setItemText('${esc(t)}',${i},'note',this.value)" placeholder="補足">${esc(a.note)}</textarea></div><div class="field"><label>${t===EVACUATION?'現場写真（帰署後の検討用・任意）':'写真（任意・項目ごとに保存）'}</label>${x.completedAt?'':`<input type="file" accept="image/*" capture="environment" data-item-photo="${esc(t)}" data-item-index="${i}">`}${(a.photos||[]).map((src,j)=>`<span class="item-photo"><img class="item-photo-img" src="${src}" alt="${esc(a.label)}の写真">${x.completedAt?'':`<button type="button" class="ghost" onclick="removeItemPhoto('${esc(t)}',${i},${j})">削除</button>`}</span>`).join('')}<div class="small">写真の圧縮コピーはこの項目の記録に保存され、検査記録と一緒に削除されます。${t===EVACUATION?' 帰署後は同じ端末・ブラウザで確認してください。人物や氏名などが写り込まないようにしてください。':''}</div></div></div>`).join('')}<div class="actions"><button class="secondary" onclick="equipIndex=Math.max(0,equipIndex-1);render();scrollPageTop()">← 前の設備</button><button onclick="nextEquip()">${equipIndex<x.equipments.length-1?'次の設備 →':'まとめを確認 →'}</button></div>`}if(page==='summary'){app.innerHTML=`<div class="row"><h1 class="title">検査まとめ</h1><span class="badge ${x.completedAt?'good':'warn'}">${x.completedAt?'完了（閲覧のみ）':'完了前'}</span></div>${summaryCard()}${ordinanceQuantitySummary(x)}${x.completedAt?`<h2>検査完了後メモ</h2><div class="field"><label>検査完了後に追記するメモ</label><textarea placeholder="結果は変更せず、補足事項を記録できます" onblur="savePostCompletionMemo(this)">${esc(x.postCompletionMemo||'')}</textarea></div>`:''}${!x.completedAt?`<div class="actions"><button class="secondary" onclick="setPage('equip')">設備・メモを修正</button><button onclick="finish()">検査完了</button></div><p class="small">「検査完了」後は編集できません。7日間の閲覧後、次回起動時に自動削除されます。</p>`:`<div class="actions"><button class="secondary" onclick="setPage('home')">一覧へ戻る</button></div>`}`}
 if(page==='editEquip'){let t=ret;app.innerHTML=`<h1 class="title">${t} を修正</h1>${(x.results[t]||[]).map((a,i)=>`<div class="checkitem"><div class="checktitle">${esc(a.label)} <span class="badge">${a.value}</span></div>${a.reason?`<p class="small">${esc(a.reason)}</p>`:''}${a.note?`<p class="small">${esc(a.note)}</p>`:''}<button class="ghost" onclick="equipIndex=${x.equipments.indexOf(t)};setPage('checks')">内容を修正</button></div>`).join('')}<div class="actions"><button onclick="setPage('summary')">まとめへ戻る</button></div>`}
 if(page!=='editEquip'){nav.classList.remove('hidden');nav.innerHTML=`<button class="secondary" onclick="setPage('info')">情報</button><button class="secondary" onclick="setPage('equip')">項目選択</button><button onclick="setPage('summary')">まとめ</button>`}
 document.querySelectorAll('[data-key]').forEach(el=>{el.addEventListener('change',()=>snapField(el.dataset.key,el.value));if(el.tagName==='TEXTAREA')el.addEventListener('input',()=>snapField(el.dataset.key,el.value))});let fi=document.getElementById('photoIn');if(fi)fi.onchange=()=>{let f=fi.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{let c=document.createElement('canvas'),scale=Math.min(1,1000/Math.max(im.width,im.height));c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);x.photo=c.toDataURL('image/jpeg',.72);changed('写真を追加');render()};im.src=r.result};r.readAsDataURL(f)};document.querySelectorAll('[data-item-photo]').forEach(input=>input.addEventListener('change',()=>storeItemPhoto(input)));
